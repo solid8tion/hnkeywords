@@ -23,7 +23,7 @@ be found at <https://hexdocs.pm/hnkeywords>.
 
 ### Build Docker and Add to ECR Repo
 ```
-$ docker build -t hello_lambda .
+$ docker build -t hnkeywords .
 $ aws ecr create-repository --repository-name hnkeywords-repo --region us-east-1
 $ aws ecr get-login-password | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID".dkr.ecr.us-east-1.amazonaws.com/hnkeywords-repo"
 $ docker tag hnkeywords "$AWS_ACCOUNT_ID".dkr.ecr.us-east-1.amazonaws.com/hnkeywords-repo
