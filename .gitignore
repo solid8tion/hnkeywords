@@ -24,6 +24,3 @@ hnkeywords-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
-
-# Ignore repo file
-hnkeywords_repo

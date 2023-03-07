@@ -1,0 +1,5 @@
+#!/bin/sh
+
+APP_NAME=hnkeywords
+
+${LAMBDA_TASK_ROOT}/bin/${APP_NAME} start

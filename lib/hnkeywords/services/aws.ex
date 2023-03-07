@@ -11,7 +11,7 @@ defmodule Hnkeywords.Services.Aws do
 
 		ExAws.S3.put_object(s3_bucket, db_filename, body, headers)
 		|> ExAws.request!()
-		{:ok, "File uploaded successfully."}
+		{:ok, "DB uploaded successfully"}
 
 	  {:error, reason} -> 
 	  	{:error, "Error reading file: #{reason}"}

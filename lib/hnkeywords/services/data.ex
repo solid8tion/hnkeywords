@@ -12,10 +12,11 @@ defmodule Hnkeywords.Services.Data do
 
   def fetch_keywords(days, limit \\ 10) do
     query = from k in Keyword,
+      join: i in Item, on: k.item_id == i.id,
+      select: [fragment("count(?) as count", k.id), fragment("sum(?) as rank", i.rank), k.keyword],
       group_by: k.keyword, 
-      select: [fragment("count(?) as count", k.id), k.keyword],
       limit: ^limit,
-      order_by: [desc: fragment("count")],
+      order_by: [desc: fragment("count"), asc: fragment("rank")],
       where: k.inserted_at > ago(^days, "day")
     Repo.all(query)
   end
@@ -48,5 +49,5 @@ defmodule Hnkeywords.Services.Data do
     |> Changeset.put_assoc(:item, item)
     |> Repo.insert()
   end
-  
+
 end

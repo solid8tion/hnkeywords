@@ -17,18 +17,25 @@ curl https://api.openai.com/v1/completions \
 "index":0,"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":130,"completion_tokens":93,"total_tokens":223}}
 '''
 defmodule Hnkeywords.Services.Openai do
+  
   @completions_url "https://api.openai.com/v1/chat/completions"
   @recv_timeout 20_000
+
   def compute(titles) do
     format_prompt(titles)
-	|> fetch_completion
-	|> IO.inspect
-  |> format_results(titles)
+  	|> fetch_completion
+  	|> IO.inspect
+    |> format_results(titles)
   end
 
   defp format_results({:ok, %{ "choices" => [%{ "message" => %{ "content" => resp} } | _]}}, titles) do
     String.split(resp, "\n", trim: true)
-    |> Enum.map(fn text -> String.replace(text, ~r/\.\z/, "") |> String.split(": ") |> List.last |> String.split(",", trim: true) end) 
+    |> Enum.map(fn text -> String.split(text, ": ") 
+      |> List.last 
+      |> String.replace(~r/^\s+|(\.|;)\s*\z/, "")
+      |> String.downcase
+      |> String.split(", ", trim: true)
+    end)
     |> Enum.zip(titles)
   end
 
@@ -40,7 +47,7 @@ defmodule Hnkeywords.Services.Openai do
   defp fetch_completion(prompt) do
   	headers = [{"Content-Type", "application/json"}, {"Authorization", "Bearer #{Application.get_env(:hnkeywords, :openai_secret)}"}]
   	#payload = %{:model => "text-davinci-003", :temperature => 0, :max_tokens => 500, :top_p => 1, :frequency_penalty => 0.8, :presence_penalty => 0, :prompt => prompt}
-  	payload = %{:model => "gpt-3.5-turbo", :messages => [%{:role => "system", :content => "You are a helpful assistant that extracts keywords from texts."}, %{:role => "user", :content => prompt}]}
+  	payload = %{:model => Application.get_env(:hnkeywords, :openai_model), :messages => [%{:role => "system", :content => "You are a helpful assistant that extracts keywords from texts."}, %{:role => "user", :content => prompt}]}
     body = Jason.encode!(payload)
   	case HTTPoison.post(@completions_url, body, headers, [recv_timeout: @recv_timeout]) do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->

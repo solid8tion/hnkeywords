@@ -4,36 +4,63 @@ defmodule Hnkeywords do
   @openai_timeout 25_000
   @await_timeout 10_000
 
-  def process do
-    view_stories()
+  def lambda_handler(request, context) do
+    """
+    Request: #{Kernel.inspect(request)}
+    Context: #{Kernel.inspect(context)}
+    """
+    |> IO.puts()
+    
+    args = Jason.decode!(request)
+    opts = Enum.map(args, fn({key, value}) -> {String.to_existing_atom(key), value} end)
+
+    runall(opts)
+    |> Task.await(@await_timeout)
+    |> IO.inspect()
+
+    :ok
+  end
+
+  def process(opts \\ []) do
+    view_stories(opts)
     |> extract_keywords() 
     |> save_keywords()
   end
 
-  def runall() do
-    topstories = process()
-    topkeywords = fetch()
+  def runall(opts \\ []) do
     datetime = DateTime.utc_now() |> Calendar.strftime("%Y-%m-%d")
-    async_query(Services.Email, :send, [datetime, topstories, topkeywords])
+    days_from = opts[:days_from] || Application.get_env(:hnkeywords, :default_days_from)
+    to = opts[:to] || Application.get_env(:hnkeywords, :sender_email)
+    send_email = opts[:send_email] || Application.get_env(:hnkeywords, :send_email)
+
+    topstories = process(opts)
+    topkeywords = fetch_keywords(opts)
+
+    if send_email do
+      async_query(Services.Email, :send, [datetime, topstories, topkeywords, days_from, to])
+    end
+    
     flush()
   end
 
-  def view_stories do
+  def view_stories(opts \\ []) do
+    story_limit = opts[:story_limit] || Application.get_env(:hnkeywords, :default_story_limit)
+
     {:ok, topstories } = async_query(Services.Hn, :topstories)
     |> Task.await(@await_timeout)
 
     Enum.with_index(topstories)
-    |> Enum.take(Application.get_env(:hnkeywords, :fetch_item_limit))
+    |> Enum.take(story_limit)
     |> Enum.map(&async_query(Services.Hn, :iterate, [&1]))
     |> Task.yield_many(@await_timeout)
     |> Enum.map(fn {task, {:ok, res}} -> res || Task.shutdown(task, :brutal_kill) end)
   end
 
-  def fetch() do
-    fetch_from = Application.get_env(:hnkeywords, :fetch_from)
-    fetch_limit = Application.get_env(:hnkeywords, :fetch_keyword_limit)
+  def fetch_keywords(opts \\ []) do
+    days_from = opts[:days_from] || Application.get_env(:hnkeywords, :default_days_from)
+    keyword_limit = opts[:keyword_limit] || Application.get_env(:hnkeywords, :default_keyword_limit)
     
-    async_query(Services.Data, :fetch_keywords, [fetch_from, fetch_limit])
+    async_query(Services.Data, :fetch_keywords, [days_from, keyword_limit])
     |> Task.await(@await_timeout)
   end
 

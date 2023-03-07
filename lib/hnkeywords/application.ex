@@ -9,12 +9,14 @@ defmodule Hnkeywords.Application do
   def start(_type, _args) do
 
     download_db()
-    
+
     children = [
       # Starts a worker by calling: Hnkeywords.Worker.start_link(arg)
       # {Hnkeywords.Worker, arg}
       Hnkeywords.Repo,
       Hnkeywords.Services.Supervisor,
+      {Task.Supervisor, name: Hnkeywords.TaskSupervisor},
+      Hnkeywords.Lambda.Poller
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

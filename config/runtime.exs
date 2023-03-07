@@ -1,37 +1,46 @@
 import Config
 
-openai_secret =
-    System.get_env("OPENAI_SECRET") ||
-      raise """
-      environment variable OPENAI_SECRET is missing.
-      """
-
-bucket_name = case config_env() do
-  :prod -> "hnkeywords-prod"
-  _ -> "hnkeywords-dev"
+db_filename = case config_env() do
+  :prod -> "prod.db"
+  _ -> "dev.db"
 end
 
-db_filename = "hnkeywords.db"
 db_filepath = "/tmp/#{db_filename}"
-sender_email = System.get_env("SENDER_EMAIL")
+
+poller_type = case config_env() do
+  :prod -> :lambda
+  _ -> :timer
+end
 
 config :hnkeywords, 
-  openai_secret: openai_secret,
-  s3_bucket: bucket_name,
+  openai_secret: System.fetch_env!("OPENAI_SECRET"),
+  s3_bucket: System.fetch_env!("S3_BUCKET"),
   db_filename: db_filename,
   db_filepath: db_filepath,
-  sender_email: sender_email
+  sender_email: System.fetch_env!("SENDER_EMAIL"),
+  send_email: true,
+  poller: poller_type
 
 config :hnkeywords, Hnkeywords.Repo,
   database: db_filepath,
   synchronous: :full,
-  journal_mode: :off
+  journal_mode: :off,
+  log: :false
 
-config :ex_aws,
-  json_codec: Jason,
-  region: "us-east-1",
-  access_key_id: {:system, "AWS_ACCESS_KEY_ID"},
-  secret_access_key: {:system, "AWS_SECRET_ACCESS_KEY"}
+if System.get_env("AWS_SESSION_TOKEN") do
+  config :ex_aws,
+    json_codec: Jason,
+    region: [{:system, "AWS_REGION"}, :instance_role] ,
+    access_key_id: [{:system, "AWS_ACCESS_KEY_ID"}, :instance_role], 
+    secret_access_key: [{:system, "AWS_SECRET_ACCESS_KEY"}, :instance_role],
+    security_token: [{:system, "AWS_SESSION_TOKEN"}, :instance_role]
+else
+  config :ex_aws,
+    json_codec: Jason,
+    region: {:system, "AWS_REGION"},
+    access_key_id: {:system, "AWS_ACCESS_KEY_ID"},
+    secret_access_key: {:system, "AWS_SECRET_ACCESS_KEY"}
+end
 
 config :hnkeywords, Hnkeywords.Mailer,
   adapter: Bamboo.SesAdapter
