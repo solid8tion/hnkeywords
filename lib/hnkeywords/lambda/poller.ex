@@ -65,7 +65,7 @@ defmodule Hnkeywords.Lambda.Poller do
       )
       |> Task.await(@await_timeout)
 
-    {:ok, %HTTPoison.Response{status_code: 200}} = 
+    {:ok, %HTTPoison.Response{}} = 
       HTTPoison.post("http://#{aws_lambda_runtime_api}/2018-06-01/runtime/invocation/#{lambda_runtime_aws_request_id}/response", Jason.encode!(%{status: response}))
 
     send(self(), :lambda)

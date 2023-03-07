@@ -11,6 +11,7 @@ defmodule Hnkeywords.Services.Email do
       html_body: html_body
     )
     |> Mailer.deliver_later()
+    #|> Mailer.deliver_now!()
   end
 
   defp format_stories(datetime, stories) do
