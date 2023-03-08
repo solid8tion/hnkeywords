@@ -38,6 +38,7 @@ FROM ${container}
 ENV LANG C.UTF-8
 
 COPY --from=0 /release .
-COPY --chmod=755 priv/bootstrap ${LAMBDA_RUNTIME_DIR}/bootstrap
+COPY priv/bootstrap ${LAMBDA_RUNTIME_DIR}/bootstrap
+RUN chmod 755 ${LAMBDA_RUNTIME_DIR}/bootstrap
 
 CMD [ "Elixir.Hnkeywords.lambda_handler" ]
