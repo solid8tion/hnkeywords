@@ -1,27 +1,8 @@
-ARG container=public.ecr.aws/lambda/provided:al2.2023.02.28.13
-FROM ${container}
+FROM public.ecr.aws/p2t7j0q6/lambda-elixir:latest AS compile
 
 ENV LANG C.UTF-8
-ENV ERLANG_VERSION OTP-25.2.3
-ENV ELIXIR_VERSION v1.14.3
 
 WORKDIR /tmp
-
-RUN yum -y groupinstall "Development Tools" && \
-  yum -y install ncurses-devel openssl-devel && \
-  git clone https://github.com/erlang/otp.git -b ${ERLANG_VERSION} && \
-  cd otp && \
-  ./otp_build autoconf && \
-  ./configure && \
-  make && \
-  make install && \
-  cd .. && \
-  git clone https://github.com/elixir-lang/elixir.git -b ${ELIXIR_VERSION} && \
-  cd elixir && \
-  make && \
-  make install
-
-RUN yum -y install sqlite
 
 COPY . /app
 
@@ -33,12 +14,13 @@ RUN cd /app && \
   MIX_ENV=prod mix release --path /release && \
   chmod -R a=rX /release
 
-FROM ${container}
+FROM public.ecr.aws/lambda/provided:al2.2023.02.28.13 AS package
 
 ENV LANG C.UTF-8
 
-COPY --from=0 /release .
-COPY priv/bootstrap ${LAMBDA_RUNTIME_DIR}/bootstrap
-RUN chmod 755 ${LAMBDA_RUNTIME_DIR}/bootstrap
+WORKDIR /tmp
+
+COPY --from=compile /release .
+COPY --chmod=755 priv/bootstrap ${LAMBDA_RUNTIME_DIR}/bootstrap
 
 CMD [ "Elixir.Hnkeywords.lambda_handler" ]

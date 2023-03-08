@@ -40,7 +40,7 @@ You can set the following arguments when triggering the Lambda function:
 You can use the Github actions workflow included to deploy the app.  Set `AWS_REGION`, `YOUR_ACCESS_KEY_ID`, `YOUR_SECRET_ACCESS_KEY` as repository secrets in Github.  You will first need to give the AWS user the necessary permissions to access ECR and deploy to Lambda.  You will also need to create a repository in AWS ECR:
 
 ```
-$ aws ecr create-repository --repository-name hnkeywords-repo --region us-east-1
+$ aws ecr create-repository --repository-name hnkeywords --region us-east-1
 ```
 
 ### Manual Publish to ECR
@@ -49,9 +49,9 @@ You can also manually publish to AWS ECR using the below steps:
 
 ```
 $ docker build -t hnkeywords .
-$ aws ecr get-login-password | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID".dkr.ecr.us-east-1.amazonaws.com/hnkeywords-repo"
-$ docker tag hnkeywords "$AWS_ACCOUNT_ID".dkr.ecr.us-east-1.amazonaws.com/hnkeywords-repo
-$ docker push "$AWS_ACCOUNT_ID".dkr.ecr.us-east-1.amazonaws.com/hnkeywords-repo
+$ aws ecr get-login-password | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID".dkr.ecr.us-east-1.amazonaws.com/hnkeywords"
+$ docker tag hnkeywords "$AWS_ACCOUNT_ID".dkr.ecr.us-east-1.amazonaws.com/hnkeywords
+$ docker push "$AWS_ACCOUNT_ID".dkr.ecr.us-east-1.amazonaws.com/hnkeywords
 ```
 
 ## References
