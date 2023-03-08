@@ -36,11 +36,12 @@ defmodule Hnkeywords do
     topstories = process(opts)
     topkeywords = fetch_keywords(opts)
 
+    flush()
+
     if send_email do
       async_query(Services.Email, :send, [datetime, topstories, topkeywords, days_from, to])
     end
     
-    flush()
   end
 
   def view_stories(opts \\ []) do
