@@ -2,8 +2,6 @@ FROM public.ecr.aws/p2t7j0q6/lambda-elixir:latest AS compile
 
 ENV LANG C.UTF-8
 
-WORKDIR /tmp
-
 COPY . /app
 
 RUN cd /app && \
@@ -17,8 +15,6 @@ RUN cd /app && \
 FROM public.ecr.aws/lambda/provided:al2.2023.02.28.13 AS package
 
 ENV LANG C.UTF-8
-
-WORKDIR /tmp
 
 COPY --from=compile /release .
 COPY --chmod=755 priv/bootstrap ${LAMBDA_RUNTIME_DIR}/bootstrap
