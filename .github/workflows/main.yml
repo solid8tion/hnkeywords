@@ -35,7 +35,7 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: hnkeywords-repo
+          ECR_REPOSITORY: "hnkeywords-repo"
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
@@ -51,4 +51,4 @@ jobs:
           aws lambda update-function-code --function-name hnkeywords --image-uri $IMAGE_URI
 
     - name: Deployed!
-      run: echo "hnkeywords deployed to AWS Lambda"
+        run: echo "hnkeywords deployed to AWS Lambda"
