@@ -38,7 +38,7 @@ defmodule Hnkeywords.Lambda.Poller do
     handler = Lambda.DefinedEnvironmentVariable.get__handler()
 
     {:ok, %HTTPoison.Response{body: body, headers: headers, status_code: 200}} = 
-      HTTPoison.get("http://#{aws_lambda_runtime_api}/2018-06-01/runtime/invocation/next", [], [timeout: :infinity])
+      HTTPoison.get("http://#{aws_lambda_runtime_api}/2018-06-01/runtime/invocation/next", [], [timeout: :infinity, recv_timeout: :infinity])
 
     lambda_runtime_aws_request_id =
       Lambda.InvocationData.get_lambda_runtime_aws_request_id(headers)
