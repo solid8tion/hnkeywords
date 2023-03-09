@@ -2,7 +2,8 @@ defmodule Hnkeywords do
   alias Hnkeywords.Services
   
   @openai_timeout 25_000
-  @await_timeout 10_000
+  @task_timeout 10_000
+  #@full_timeout 60_000
 
   def lambda_handler(request, context) do
     """
@@ -15,7 +16,6 @@ defmodule Hnkeywords do
     opts = Enum.map(args, fn({key, value}) -> {String.to_existing_atom(key), value} end)
 
     runall(opts)
-    |> Task.await(@await_timeout)
     |> IO.inspect()
 
     :ok
@@ -31,7 +31,10 @@ defmodule Hnkeywords do
     datetime = DateTime.utc_now() |> Calendar.strftime("%Y-%m-%d")
     days_from = opts[:days_from] || Application.get_env(:hnkeywords, :default_days_from)
     to = opts[:to] || Application.get_env(:hnkeywords, :sender_email)
-    send_email = opts[:send_email] || Application.get_env(:hnkeywords, :send_email)
+    send_email = case Keyword.has_key?(opts, :send_email) and is_boolean(opts[:send_email]) do
+      true -> opts[:send_email]
+      false -> Application.get_env(:hnkeywords, :send_email)
+    end
 
     topstories = process(opts)
     topkeywords = fetch_keywords(opts)
@@ -40,6 +43,7 @@ defmodule Hnkeywords do
 
     if send_email do
       async_query(Services.Email, :send, [datetime, topstories, topkeywords, days_from, to])
+      |> Task.await(@task_timeout)
     end
     
   end
@@ -48,12 +52,12 @@ defmodule Hnkeywords do
     story_limit = opts[:story_limit] || Application.get_env(:hnkeywords, :default_story_limit)
 
     {:ok, topstories } = async_query(Services.Hn, :topstories)
-    |> Task.await(@await_timeout)
+    |> Task.await(@task_timeout)
 
     Enum.with_index(topstories)
     |> Enum.take(story_limit)
     |> Enum.map(&async_query(Services.Hn, :iterate, [&1]))
-    |> Task.yield_many(@await_timeout)
+    |> Task.yield_many(@task_timeout)
     |> Enum.map(fn {task, {:ok, res}} -> res || Task.shutdown(task, :brutal_kill) end)
   end
 
@@ -62,7 +66,7 @@ defmodule Hnkeywords do
     keyword_limit = opts[:keyword_limit] || Application.get_env(:hnkeywords, :default_keyword_limit)
     
     async_query(Services.Data, :fetch_keywords, [days_from, keyword_limit])
-    |> Task.await(@await_timeout)
+    |> Task.await(@task_timeout)
   end
 
   defp extract_keywords(result) do
@@ -74,7 +78,7 @@ defmodule Hnkeywords do
   defp save_keywords(result) do
     snapshot_name = DateTime.utc_now() |> Calendar.strftime("%Y%m%d%H%M")
     async_query(Services.Data, :save, [snapshot_name, result])
-    |> Task.await(@await_timeout)
+    |> Task.await(@task_timeout)
     result
   end
   
@@ -86,6 +90,7 @@ defmodule Hnkeywords do
 
   defp flush do
     async_query(Services.Aws, :upload_db, [])
+    |> Task.await(@task_timeout)
   end
 
 end

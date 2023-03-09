@@ -19,13 +19,14 @@ defmodule Hnkeywords.Lambda.Poller do
   end
 
   def handle_info(:timer, []) do
-
-    Task.Supervisor.start_child(
+    Task.Supervisor.async_nolink(
       Hnkeywords.TaskSupervisor,
       Hnkeywords,
       Application.get_env(:hnkeywords, :timer_func),
       []
     )
+    |> Task.await(@await_timeout)
+
     Process.send_after(self(), :timer, Application.get_env(:hnkeywords, :timer_interval_ms))
     {:noreply, []}
   end
@@ -53,20 +54,32 @@ defmodule Hnkeywords.Lambda.Poller do
       |> Enum.reverse()
       |> Module.concat()
 
-    response =
-      Task.Supervisor.async(
-        Hnkeywords.TaskSupervisor,
-        module,
-        function_name,
-        [
-          to_string(body),
-          headers
-        ]
-      )
-      |> Task.await(@await_timeout)
+    
+    try do
 
-    {:ok, %HTTPoison.Response{}} = 
-      HTTPoison.post("http://#{aws_lambda_runtime_api}/2018-06-01/runtime/invocation/#{lambda_runtime_aws_request_id}/response", Jason.encode!(%{status: response}))
+      response =
+        Task.Supervisor.async_nolink(
+          Hnkeywords.TaskSupervisor,
+          module,
+          function_name,
+          [
+            to_string(body),
+            headers
+          ]
+        )
+        |> Task.await(@await_timeout)
+
+      {:ok, %HTTPoison.Response{}} = 
+        HTTPoison.post("http://#{aws_lambda_runtime_api}/2018-06-01/runtime/invocation/#{lambda_runtime_aws_request_id}/response", Jason.encode!(%{status: response}))
+
+    catch
+      :exit, _err ->
+        err_body = %{"errorMessage" => "Task terminated", "errorType" => "TaskExitError"}
+        
+        {:ok, %HTTPoison.Response{}} = 
+          HTTPoison.post("http://#{aws_lambda_runtime_api}/2018-06-01/runtime/invocation/#{lambda_runtime_aws_request_id}/error", Jason.encode!(err_body))
+
+    end
 
     send(self(), :lambda)
     {:noreply, []}

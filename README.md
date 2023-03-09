@@ -6,32 +6,54 @@ This application is designed to run on AWS Lambda using a Docker image.  In a lo
 
 ## Installation
 
-### ENV Vars
+### Set ENV Vars
 
-Set the following environment variables:
+Add the following environment variables in a new file `.env`
 ```
-export OPENAI_SECRET=<OPENAI_API_SECRET_KEY>
-export S3_BUCKET=<AWS_S3_BUCKET> # to store SQLite DB file
-export SENDER_EMAIL=<YOUR_EMAIL> # verified email on AWS SES to send emails from
-```
-
-Also set the following AWS credentials if testing on local:
-```
-export AWS_REGION=<YOUR_AWS_REGION>
-export AWS_ACCESS_KEY_ID=<<YOUR_ACCESS_KEY_ID>
-export AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
+OPENAI_SECRET=<OPENAI_API_SECRET_KEY>
+S3_BUCKET=<AWS_S3_BUCKET> # to store SQLite DB file
+SENDER_EMAIL=<YOUR_EMAIL> # verified email on AWS SES to send emails from
+DB_FILENAME=<SQLITE_DB_FILENAME>
+AWS_REGION=<YOUR_AWS_REGION>
+AWS_ACCESS_KEY_ID=<<YOUR_ACCESS_KEY_ID>
+AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
 ```
 
-You can set the following arguments when triggering the Lambda function:
+You can set the following arguments, all optional, when triggering the Lambda function:
 ```
 {
-  "days_from": 30, // the last number of days from which to retrieve the trending keyword data
-  "story_limit": 25, // the number of stories to use from Hacker News
-  "keyword_limit": 25, // the number of trending keywords to retrieve
-  "send_email": true, // set it to false to disable the email
-  "to": "youremail@domain.com" // the destination email
+  "days_from": 30, // the last number of days from which to retrieve the trending keyword data, defaults to 30
+  "story_limit": 25, // the number of stories to use from Hacker News, defaults to 25
+  "keyword_limit": 10, // the number of trending keywords to retrieve, defaults to 10
+  "send_email": true, // set it to false to disable the email, defaults to true
+  "to": "youremail@domain.com" // the destination email, defaults to the sender email address
 }
 ```
+
+#### Run as Lambda function
+
+1. Login to the public AWS ECR repository
+
+    `aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws`
+
+2. Build your image locally using the docker build command.
+
+    `docker build -t hnkeywords:latest .`
+
+3. Run your container image locally using the docker run command.
+
+    `docker run --env-file .env -p 9000:8080 hnkeywords:latest`
+
+    This command runs the image as a container and starts up an endpoint locally at `localhost:9000/2015-03-31/functions/function/invocations`.
+
+4. Trigger the Lambda function to the following endpoint using a curl command:
+
+    ```
+    curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"days_from": 30,"story_limit": 5,"keyword_limit": 5,"send_email":false}'
+    ```
+
+    This command invokes the function running in the container image and returns a response.
+
 
 ## Deploy to AWS ECR/Lambda
 
@@ -57,6 +79,7 @@ $ docker push "$AWS_ACCOUNT_ID".dkr.ecr.us-east-1.amazonaws.com/hnkeywords
 ## References
 
 * https://github.com/niku/lambda_elixir_on_docker_example
+* https://docs.aws.amazon.com/lambda/latest/dg/runtimes-api.html
 * https://aws.amazon.com/blogs/aws/new-for-aws-lambda-container-image-support/
 * https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/RunLambdaSchedule.html
 * https://shpals.medium.com/create-aws-lambda-from-ecr-docker-image-and-integrate-it-with-github-ci-cd-pipeline-dfa3015b5ee0

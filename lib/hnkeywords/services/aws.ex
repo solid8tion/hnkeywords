@@ -6,12 +6,12 @@ defmodule Hnkeywords.Services.Aws do
   	db_filename = Application.get_env(:hnkeywords, :db_filename)
   	db_filepath = Application.get_env(:hnkeywords, :db_filepath)
     case File.read(db_filepath) do
-	  {:ok, body} -> 
-	  	headers = %{"Content-Type" => "application/octet-stream"}
+		{:ok, body} -> 
+			headers = %{"Content-Type" => "application/octet-stream"}
 
-		ExAws.S3.put_object(s3_bucket, db_filename, body, headers)
-		|> ExAws.request!()
-		{:ok, "DB uploaded successfully"}
+			ExAws.S3.put_object(s3_bucket, db_filename, body, headers)
+			|> ExAws.request!()
+			{:ok, "DB uploaded successfully"}
 
 	  {:error, reason} -> 
 	  	{:error, "Error reading file: #{reason}"}

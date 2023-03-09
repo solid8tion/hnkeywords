@@ -19,7 +19,6 @@ config :hnkeywords,
   db_filename: db_filename,
   db_filepath: db_filepath,
   sender_email: System.fetch_env!("SENDER_EMAIL"),
-  send_email: true,
   poller: poller_type
 
 config :hnkeywords, Hnkeywords.Repo,
