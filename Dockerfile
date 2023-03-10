@@ -1,4 +1,4 @@
-FROM public.ecr.aws/p2t7j0q6/lambda-elixir:latest AS compile
+FROM public.ecr.aws/p2t7j0q6/lambda-elixir:al2.2023.03.08.12 AS compile
 
 ENV LANG C.UTF-8
 
@@ -12,7 +12,7 @@ RUN cd /app && \
   MIX_ENV=prod mix release --path /release && \
   chmod -R a=rX /release
 
-FROM public.ecr.aws/lambda/provided:al2.2023.02.28.13 AS package
+FROM public.ecr.aws/lambda/provided:al2.2023.03.08.12 AS package
 
 ENV LANG C.UTF-8
 
