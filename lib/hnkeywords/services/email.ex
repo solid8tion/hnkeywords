@@ -16,7 +16,7 @@ defmodule Hnkeywords.Services.Email do
 
   defp format_stories(datetime, stories) do
   	"<h2>Top Stories for #{datetime}</h2><ol>" <>
-  	Enum.map_join(stories, fn {keywords, {hn_id, title, url, _index}} -> "<li><a href='https://news.ycombinator.com/item?id=#{hn_id}'>#{title}</a><br><br><a href='#{url}'>#{url}</a><br><br>[#{Enum.join(keywords, ", ")}]</li><br>" end) <>
+  	Enum.map_join(stories, fn {keywords, {hn_id, title, url, _index}} -> "<li><a href='https://news.ycombinator.com/item?id=#{hn_id}'>#{title}</a><br><br><a href='#{url}'>#{url}</a><br>[#{Enum.join(keywords, ", ")}]</li><br>" end) <>
   	"</ol>"
   end
 
