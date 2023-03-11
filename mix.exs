@@ -24,6 +24,7 @@ defmodule Hnkeywords.MixProject do
     [
       {:httpoison, "~> 2.0"},
       {:jason, "~> 1.4"} ,
+      {:exqlite, "0.13.2"},
       {:ecto_sql, "~> 3.9"},
       {:ecto_sqlite3, "~> 0.9.1"},
       {:ex_aws, "~> 2.1"},
