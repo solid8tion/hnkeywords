@@ -40,7 +40,7 @@ defmodule Hnkeywords.Services.Openai do
   end
 
   defp format_prompt(titles) do
-  	"Extract the main subjects from each of these titles and don't repeat the title in the answer: " <>
+  	"Extract the main keywords that can be taggable from each of these titles and don't repeat the title in the answer: " <>
   	Enum.map_join(titles, fn {_hn_id, title, _url, index} -> "#{index}: #{title}, " end)
   end
 
