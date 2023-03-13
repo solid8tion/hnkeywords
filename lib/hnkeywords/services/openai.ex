@@ -32,7 +32,7 @@ defmodule Hnkeywords.Services.Openai do
     String.split(resp, "\n", trim: true)
     |> Enum.map(fn text -> String.split(text, ": ") 
       |> List.last 
-      |> String.replace(~r/^\s+|(\.|;)\s*\z/, "")
+      |> String.replace(~r/^\s+|(\.|;)*\s*\z/, "")
       |> String.downcase
       |> String.split(", ", trim: true)
     end)
