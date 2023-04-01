@@ -19,7 +19,7 @@ curl https://api.openai.com/v1/completions \
 defmodule Hnkeywords.Services.Openai do
   
   @completions_url "https://api.openai.com/v1/chat/completions"
-  @recv_timeout 20_000
+  @recv_timeout 60_000
 
   def compute(titles) do
     format_prompt(titles)

@@ -1,7 +1,7 @@
 defmodule Hnkeywords do
   alias Hnkeywords.Services
   
-  @openai_timeout 60_000
+  @openai_timeout 65_000
   @task_timeout 10_000
   #@full_timeout 60_000
 
