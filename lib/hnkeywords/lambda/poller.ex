@@ -2,7 +2,7 @@ defmodule Hnkeywords.Lambda.Poller do
   alias Hnkeywords.Lambda
   use GenServer, restart: :temporary
 
-  @await_timeout 30_000
+  @await_timeout 120_000
 
   def start_link([]) do
     GenServer.start_link(__MODULE__, [])
