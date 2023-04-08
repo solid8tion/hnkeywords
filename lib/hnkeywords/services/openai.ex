@@ -20,6 +20,7 @@ defmodule Hnkeywords.Services.Openai do
   
   @completions_url "https://api.openai.com/v1/chat/completions"
   @recv_timeout 60_000
+  @conn_timeout 30_000
 
   def compute(titles) do
     format_prompt(titles)
@@ -49,7 +50,7 @@ defmodule Hnkeywords.Services.Openai do
   	#payload = %{:model => "text-davinci-003", :temperature => 0, :max_tokens => 500, :top_p => 1, :frequency_penalty => 0.8, :presence_penalty => 0, :prompt => prompt}
   	payload = %{:model => Application.get_env(:hnkeywords, :openai_model), :messages => [%{:role => "system", :content => "You are a helpful assistant that extracts keywords from texts."}, %{:role => "user", :content => prompt}]}
     body = Jason.encode!(payload)
-  	case HTTPoison.post(@completions_url, body, headers, [recv_timeout: @recv_timeout]) do
+  	case HTTPoison.post(@completions_url, body, headers, [:timeout: @conn_timeout, recv_timeout: @recv_timeout]) do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
         {:ok, Jason.decode!(body) }
       {:ok, %HTTPoison.Response{status_code: 404}} ->

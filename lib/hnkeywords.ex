@@ -1,8 +1,8 @@
 defmodule Hnkeywords do
   alias Hnkeywords.Services
   
-  @openai_timeout 65_000
-  @task_timeout 10_000
+  @openai_timeout 90_000
+  @task_timeout 20_000
   #@full_timeout 60_000
 
   def lambda_handler(request, context) do
