@@ -10,6 +10,6 @@ config :hnkeywords,
 	default_keyword_limit: 10,
 	default_days_from: 30,
 	send_email: true,
-	openai_model: "gpt-3.5-turbo-0301",
+	openai_model: "gpt-4o-mini",
 	timer_func: :runall,
 	timer_interval_ms: 43200000_000 # 12 hours
